@@ -1,2 +1,2 @@
 # re-pim
-Single page dashboard app built with Laravel, Vue and Tailwind
+Single page PIM (Product Information Management) app built with Laravel, Vue and Tailwind
