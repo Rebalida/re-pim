@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 space-y-4 md:space-y-0">
       <div class="space-y-2">
         <h3 class="text-3xl font-bold">Settings</h3>
         <p class="text-sm text-gray-400">Manage connected stores</p>

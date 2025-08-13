@@ -8,9 +8,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Instrument Sans', 'ui-sans-serif', 'system-ui'],
+        sans: ['Noto Sans', 'ui-sans-serif', 'system-ui'],
       },
     },
+    container: {
+      center: true,
+      screens: {
+        DEFAULT: "1440px"
+      },
+    },
+    
   },
   plugins: [],
 }
