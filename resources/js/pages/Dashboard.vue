@@ -2,7 +2,7 @@
   <div>
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
-      <div>
+      <div class="space-y-2">
         <h2 class="text-3xl font-bold">Dashboard</h2>
         <p class="text-sm text-gray-400">Overview of the stores and products</p>
       </div>
@@ -13,7 +13,7 @@
         <div
           v-for="stat in stats"
           :key="stat.title"
-          class="bg-gray-800 rounded-lg p-6 flex items-center justify-between hover:shadow-lg transition"
+          class="bg-gray-800 bg-opacity-40 backdrop-blur-md border border-gray-700/50 rounded-lg p-6 flex items-center justify-between hover:shadow-lg transition"
         >
           <div>
             <p class="text-sm text-gray-400">{{ stat.title }}</p>
@@ -32,7 +32,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   
       <!-- Chart -->
-      <div class="bg-gray-800 p-6 rounded-lg lg:col-span-2">
+      <div class="bg-gray-800 bg-opacity-40 backdrop-blur-md border border-gray-700/50 p-6 rounded-lg lg:col-span-2">
         <h3 class="text-lg font-semibold mb-4">Products Over Time</h3>
         <ApexChart
           type="area"
@@ -43,7 +43,7 @@
       </div>
   
       <!-- Activities -->
-       <div class="bg-gray-800 p-6 rounded-lg">
+       <div class="bg-gray-800 bg-opacity-40 backdrop-blur-md border border-gray-700/50 p-6 rounded-lg">
         <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
         <ul class="space-y-4">
           <li
@@ -67,9 +67,9 @@ import { ShoppingBagIcon, BuildingStorefrontIcon, ArrowUpTrayIcon } from '@heroi
 import { ref } from 'vue';
 
 const stats = ref([
-    { title: 'Total Products', value: 120, icon: ShoppingBagIcon, bgColor: 'bg-red-600' },
-    { title: 'Total Stores', value: 5, icon: BuildingStorefrontIcon, bgColor: 'bg-blue-600' },
-    { title: 'Exports', value: 56, icon: ArrowUpTrayIcon, bgColor: 'bg-green-600' },
+    { title: 'Total Products', value: 120, icon: ShoppingBagIcon, bgColor: 'bg-rose-600' },
+    { title: 'Total Stores', value: 5, icon: BuildingStorefrontIcon, bgColor: 'bg-sky-600' },
+    { title: 'Exports', value: 56, icon: ArrowUpTrayIcon, bgColor: 'bg-emerald-600' },
 ]);
 
 const chartOptions = ref({
@@ -91,7 +91,3 @@ const recentActivity = ref([
 ])
 
 </script>
-
-<style lang="scss" scoped>
-
-</style>
