@@ -14,8 +14,30 @@
       </button>
     </div>
 
+    <!-- Loading State -->
+    <div 
+     v-if="loading"
+     class="text-center py-8"
+     >
+      <div class="text-sky-400">Loading stores</div>
+    </div>
+
+    <!-- Empty State -->
+    <div 
+     v-else-if="stores.length === 0"
+     class="text-center py-12"
+    >
+      <div class="text-gray-400 mb-4">No stores connected yet</div>
+      <button
+       @click="openModal"
+       class="bg-sky-500 hover:bg-sky-700 text-white px-6 py-3 rounded-lg transition duration-200"
+      >
+        Add Your First Store
+      </button>
+    </div>
+
     <!-- Strores List -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <div
       v-for="store in stores"
       :key="store.id"
@@ -24,23 +46,24 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
           <img
-            v-if="store.type === 'shopify'"
+            v-if="store.platform === 'shopify'"
             :src="shopifyLogo"
             alt="Shopify"
             class="w-10 h-10" 
           />
           <img
-            v-else-if="store.type === 'woocommerce'"
+            v-else-if="store.platform === 'woocommerce'"
             :src="woocommerceLogo"
             alt="Woocommerce"
             class="w-10 h-10"
           />
-          <h3 class="text-xl font-semibold">{{ store.name }}</h3>
+          <h3 class="text-xl font-semibold">{{ store.store_name }}</h3>
         </div>
         <label class="relative inline-flex items-center cursor-pointer">
           <input 
             type="checkbox" 
-            v-model="store.active"
+            :checked="store.status"
+            @click="toggleStoreStatus(store)"
             class="sr-only peer"
           />
           <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 transition-all"></div>
@@ -48,9 +71,9 @@
         </label>
       </div>
 
-      <p class="text-gray-400 text-sm">{{ store.domain }}</p>
-      <p class="text-gray-500 text-sm">API Key: {{ maskApiKey(store.key) }}</p>
-      <p v-if="store.secret" class="text-gray-500 text-sm">API Secret: {{ maskApiKey(store.secret) }}</p>
+      <p class="text-gray-400 text-sm">{{ store.store_url }}</p>
+      <p class="text-gray-500 text-sm">API Key: {{ store.api_key }}</p>
+      <p v-if="store.api_secret" class="text-gray-500 text-sm">API Secret: {{ store.api_secret }}</p>
     </div>
     </div>
 
@@ -61,6 +84,12 @@
     >
      <div class="bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-lg border border-gray-800">
 
+      <div
+       v-if="saving"
+       class="text-center mb-4 text-sky-400"
+      >
+        Checking credentials
+      </div>
       <div class="flex items-center justify-between mb-5">
         <h3 class="text-2xl font-semibold text-white">Add New Store</h3>
         <button @click="closeModal" class="text-gray-400 hover:text-white text-xl">
@@ -125,6 +154,7 @@
       <!-- API Secret -->
        <input
         v-if="newStoreType === 'woocommerce'"
+        v-model="newStoreSecret"
         type="text" 
         placeholder="cs_xxxxxxxxxxxxxxxx"
         class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 placeholder-gray-500"
@@ -149,40 +179,55 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import shopifyLogo from '@/../images/shopify-logo.png';
 import woocommerceLogo from '@/../images/woocommerce-logo.png';
+import axios from 'axios';
 
 const isModalOpen = ref(false);
-
-// Static Stores
-const stores = ref([
-  {
-    id: 1,
-    name: 'Main Store',
-    domain: 'mainstore.myshopify.com',
-    key: 'shpat_1234567891011',
-    secret: null,
-    type: 'shopify',
-    active: true,  
-  },
-  {
-    id: 2,
-    name: 'Outlet Store',
-    domain: 'outletstore.com.ph',
-    key: 'ck_abcdefghijk123456',
-    secret: 'cs_lmnopqrstuv123',
-    type: 'woocommerce',
-    active: false,
-  }
-]);
+const saving = ref(false);
+const loading = ref(true);
+const stores = ref([])
 
 // Form fields
-const newStoreName = ref('');
-const newStoreDomain = ref('');
-const newStoreKey = ref('');
-const newStoreSecret = ref('');
-const newStoreType = ref('');
+const newStoreName = ref ('');
+const newStoreDomain = ref ('');
+const newStoreKey = ref ('');
+const newStoreSecret = ref ('');
+const newStoreType = ref ('');
+
+const fetchStores = async () => {
+  try {
+    loading.value = true;
+    const response = await axios.get('/api/stores');
+    stores.value = response.data;
+    console.log('Fetched stores:', response.data);
+  } catch (err) {
+    console.error('Error fetching stores:', err);
+    alert('Failed to load stores');
+  } finally {
+    loading.value = false;
+  }
+}
+
+const toggleStoreStatus = async (store) => {
+  store.status = !store.status;
+  
+  try {
+    await axios.put(`/api/stores/${store.id}/status`, {
+      status: store.status
+    });
+
+  } catch (error) {
+    store.status = !store.status;
+    console.error('Failed to update status:', error);
+    alert('Failed to update store status');
+  }
+};
+
+onMounted(() => {
+  fetchStores();
+});
 
 const openModal = () => {
   newStoreName.value = '';
@@ -192,35 +237,34 @@ const openModal = () => {
   newStoreType.value = '';
 
   isModalOpen.value = true;
-}
+};
 
 const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const maskApiKey = (key) => {
-  if (!key) return;
-  return key.slice(-4).padStart(key.length, 'x');
-};
-
-const saveStore = () => {
-  if (!newStoreName.value || !newStoreKey.value || !newStoreType.value || (newStoreType.value === 'shopify' && !newStoreDomain.value) || (newStoreType.value === 'woocommerce' && !newStoreSecret.value)) {
-    alert('Please fill all fields');
-    return;
+const saveStore = async () => {
+  saving.value = true;
+  try {
+    const { data } = await axios.post('/api/stores', {
+      store_name:   newStoreName.value,
+      platform:     newStoreType.value,
+      store_url:    newStoreDomain.value,
+      api_key:      newStoreKey.value,
+      api_secret:   newStoreSecret.value
+    });
+    stores.value.push(data.store);
+    alert(data.message);
+    closeModal();
+  } catch (err) {
+    if (err.response && err.response.status === 422) {
+      alert(err.response.data.message || 'Invalid credentials');
+    } else {
+      alert('An unexpected error occurred');
+    }
+  } finally {
+    saving.value = false;
   }
-
-  stores.value.push({
-    id: Date.now(),
-    name: newStoreName.value,
-    domain: newStoreType.value === 'shopify' ? newStoreDomain.value : '',
-    key: newStoreKey.value,
-    secret: newStoreType.value === 'woocommerce' ? newStoreSecret.value: '',
-    type: newStoreType.value,
-    active: true
-  })
-
-  closeModal()
-
 }
 
 </script>
