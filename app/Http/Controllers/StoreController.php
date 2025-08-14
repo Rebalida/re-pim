@@ -24,8 +24,8 @@ class StoreController extends Controller
                 try {
                     $apiKey = Crypt::decryptString($store->api_key);
                     if ($store->api_secret) {
-                    $apiSecret = Crypt::decryptString($store->api_secret);
-                }
+                        $apiSecret = Crypt::decryptString($store->api_secret);
+                    }
                 } catch (\Exception $e) {
 
                 }
