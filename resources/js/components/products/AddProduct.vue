@@ -58,7 +58,7 @@
             </div>
             <div class="mt-4 flex gap-4 flex-wrap">
               <div
-                v-for="(img, idx) in product.images"
+                v-for="(img, idx) in imagePreviews" 
                 :key="idx"
                 class="w-20 h-20 relative"
               >
@@ -184,11 +184,15 @@
 <script setup>
 import { ref } from "vue";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
+import axios from 'axios'; 
+
+const imageFiles = ref([]); 
+
+const imagePreviews = ref([]);
 
 const product = ref({
   title: "",
   description: "",
-  images: [],
   price: null,
   compare_at_price: null,
   cost: null,
@@ -200,26 +204,58 @@ const product = ref({
   vendor: "",
   collections: "",
   tags: "",
-  active: false,
+  active: false, 
 });
 
 const handleImageUpload = (e) => {
   const files = Array.from(e.target.files);
   files.forEach((file) => {
+    imageFiles.value.push(file);
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      product.value.images.push(event.target.result);
+      imagePreviews.value.push(event.target.result);
     };
     reader.readAsDataURL(file);
   });
 };
 
 const removeImage = (index) => {
-  product.value.images.splice(index, 1);
+  imagePreviews.value.splice(index, 1);
+  imageFiles.value.splice(index, 1);
 };
 
-const saveProduct = () => {
-  console.log("Saving product:", product.value);
-  // TODO: send to backend
+const saveProduct = async () => {
+  const formData = new FormData();
+
+  Object.keys(product.value).forEach(key => {
+    if (key !== 'charge_tax' && key !== 'active') { 
+        const value = product.value[key];
+        formData.append(key, value === null ? '' : value);
+    }
+  });
+
+  formData.append('charge_tax', product.value.charge_tax ? '1' : '0');
+
+
+  const status = product.value.active ? 'active' : 'draft';
+  formData.append('status', status);
+
+  imageFiles.value.forEach((file) => {
+    formData.append('images[]', file);
+  });
+
+  try {
+    const response = await axios.post('/api/products', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log('Product saved:', response.data);
+    alert('Product saved successfully!');
+  } catch (error) {
+    console.error("Error saving product:", error.response.data);
+    alert(`Failed to save product. Error: ${error.response.data.message}`);
+  }
 };
 </script>
