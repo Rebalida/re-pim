@@ -151,39 +151,35 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import axios from "axios";
 import { PencilSquareIcon } from "@heroicons/vue/16/solid";
 import { TrashIcon } from "@heroicons/vue/24/outline";
 
 const search = ref("");
 const selectedProducts = ref([]);
+const products = ref([]);
 
-const products = ref([
-  {
-    id: 1,
-    image: "https://placehold.co/150",
-    name: "Hoodie",
-    store: "Store A",
-    status: "Active",
-    price: "49.99",
-  },
-  {
-    id: 2,
-    image: "https://placehold.co/150",
-    name: "T-Shirt",
-    store: "Store B",
-    status: "Inactive",
-    price: 19.99,
-  },
-  {
-    id: 3,
-    image: "https://placehold.co/150",
-    name: "Cap",
-    store: "Store C",
-    status: "Active",
-    price: 14.99,
-  },
-]);
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/products");
+
+    products.value = response.data.data.map(product => {
+      const mainImage = product.images?.find(img => img.is_main) || product.images?.[0];
+      
+      return {
+        id: product.id,
+        image: mainImage?.url || "https://placehold.co/150",
+        name: product.title,
+        store: product.stores?.map(s => s.store_name).join(", ") || "No stores",
+        status: product.status === "active" ? "Active" : "Inactive",
+        price: product.price
+      };
+    });
+  } catch (e) {
+    console.error("Failed to fetch products", e);
+  }
+})
 
 const filteredProducts = computed(() => {
   return products.value.filter((p) =>
